@@ -1,0 +1,14 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://github.com/wow-apps/youtube-id-go#readme
+    about: Check the README for usage examples
+  - name: Contributing Guidelines
+    url: https://github.com/wow-apps/youtube-id-go/blob/main/CONTRIBUTING.md
+    about: Learn how to contribute to the project
+  - name: Code of Conduct
+    url: https://github.com/wow-apps/youtube-id-go/blob/main/CODE_OF_CONDUCT.md
+    about: Review our coding standards and best practices
+  - name: License
+    url: https://github.com/wow-apps/youtube-id-go/blob/main/LICENSE
+    about: MIT License
