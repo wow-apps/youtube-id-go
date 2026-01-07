@@ -63,7 +63,10 @@ jobs:
       - name: Go mod tidy check
         run: |
           go mod tidy
-          git diff --exit-code go.mod go.sum || (echo "go.mod or go.sum is not tidy" && exit 1)
+          git diff --exit-code go.mod || (echo "go.mod is not tidy" && exit 1)
+          if [ -f go.sum ]; then
+            git diff --exit-code go.sum || (echo "go.sum is not tidy" && exit 1)
+          fi
 
   markdown_quality:
     name: Markdown Quality
