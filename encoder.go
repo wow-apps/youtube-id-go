@@ -49,7 +49,7 @@ func (e *Encoder) Encode(number int64) (string, error) {
 		return "", ErrNegativeNumber
 	}
 	result := base62.Encode(number, e.dictionary, e.padUp)
-	return applyTransform(result, e.transform), nil
+	return applyCaseTransform(result, e.transform), nil
 }
 
 // EncodeRaw converts a number to an alphanumeric string without transformation.

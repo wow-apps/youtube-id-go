@@ -14,8 +14,8 @@ const (
 	TransformLower
 )
 
-// applyTransform applies the case transformation to the value.
-func applyTransform(value string, t Transform) string {
+// applyCaseTransform applies the case transformation to the value.
+func applyCaseTransform(value string, t Transform) string {
 	switch t {
 	case TransformUpper:
 		return strings.ToUpper(value)

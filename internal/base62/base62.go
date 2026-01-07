@@ -33,7 +33,7 @@ func pow(base, exp int) int64 {
 }
 
 // Encode converts a number to a base62 string using the given dictionary.
-// The padUp parameter should not exceed MaxPadUp (11) to avoid integer overflow.
+// Values of padUp exceeding MaxPadUp (11) are automatically clamped to prevent overflow.
 func Encode(number int64, dictionary string, padUp int) string {
 	if padUp > 1 {
 		// Clamp padUp to MaxPadUp to prevent overflow
@@ -68,7 +68,7 @@ func Encode(number int64, dictionary string, padUp int) string {
 }
 
 // Decode converts a base62 string back to a number.
-// The padUp parameter should not exceed MaxPadUp (11) to avoid integer overflow.
+// Values of padUp exceeding MaxPadUp (11) are automatically clamped to prevent overflow.
 func Decode(alphanumeric, dictionary string, padUp int) (int64, error) {
 	var result int64
 	length := len(alphanumeric)
@@ -103,7 +103,8 @@ type charPair struct {
 
 // SecureDictionary shuffles the dictionary based on a secure key.
 // This makes it harder to calculate the corresponding numeric ID without knowing the key.
-// Uses SHA256 which produces 64 hex characters, sufficient for the 62-character dictionary.
+// Uses SHA256 which produces 32 bytes (64 hex characters). Only the first 62 hex characters
+// are used for the 62-character dictionary; the remaining 2 characters are unused.
 func SecureDictionary(secureKey string) string {
 	hash := sha256.Sum256([]byte(secureKey))
 	hashHex := hex.EncodeToString(hash[:])

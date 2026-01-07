@@ -87,7 +87,7 @@ func ToAlphanumeric(number int64, opts ...Option) (string, error) {
 	}
 
 	result := base62.Encode(number, dictionary, cfg.padUp)
-	return applyTransform(result, cfg.transform), nil
+	return applyCaseTransform(result, cfg.transform), nil
 }
 
 // ToNumeric converts an alphanumeric string back to a number.
