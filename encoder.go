@@ -6,7 +6,7 @@ import "github.com/wow-apps/youtube-id-go/internal/base62"
 //
 // Example:
 //
-//	enc := yid.New(yid.WithSecureKey("secret"), yid.WithTransform(yid.TransformUpper))
+//	enc := yid.New(yid.WithSecureKey("my-secret"), yid.WithTransform(yid.TransformUpper))
 //	enc.Encode(12345)    // -> "HQJ" (transformed for display)
 //	enc.EncodeRaw(12345) // -> "hqj" (raw for storage/decoding)
 //	enc.Decode("hqj")    // -> 12345
