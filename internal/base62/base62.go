@@ -6,7 +6,6 @@ import (
 	"crypto/sha512"
 	"encoding/hex"
 	"errors"
-	"math"
 	"sort"
 	"strings"
 )
@@ -20,21 +19,37 @@ const DictLen = 62
 // ErrInvalidCharacter is returned when decoding encounters an invalid character.
 var ErrInvalidCharacter = errors.New("base62: invalid character in input")
 
+// pow calculates base^exp using integer arithmetic.
+func pow(base, exp int) int64 {
+	result := int64(1)
+	b := int64(base)
+	for i := 0; i < exp; i++ {
+		result *= b
+	}
+	return result
+}
+
 // Encode converts a number to a base62 string using the given dictionary.
 func Encode(number int64, dictionary string, padUp int) string {
 	if padUp > 1 {
-		number += int64(math.Pow(float64(DictLen), float64(padUp-1)))
+		number += pow(DictLen, padUp-1)
 	}
 
 	if number == 0 {
 		return string(dictionary[0])
 	}
 
-	var result strings.Builder
-	t := int(math.Log(float64(number)) / math.Log(float64(DictLen)))
+	// Find the highest power of 62 that fits in the number
+	t := 0
+	temp := number
+	for temp >= DictLen {
+		temp /= DictLen
+		t++
+	}
 
+	var result strings.Builder
 	for t >= 0 {
-		bcp := int64(math.Pow(float64(DictLen), float64(t)))
+		bcp := pow(DictLen, t)
 		index := (number / bcp) % int64(DictLen)
 		result.WriteByte(dictionary[index])
 		number -= index * bcp
@@ -48,6 +63,7 @@ func Encode(number int64, dictionary string, padUp int) string {
 func Decode(alphanumeric, dictionary string, padUp int) (int64, error) {
 	var result int64
 	length := len(alphanumeric)
+	multiplier := int64(1)
 
 	for i := 0; i < length; i++ {
 		char := alphanumeric[length-1-i]
@@ -55,11 +71,12 @@ func Decode(alphanumeric, dictionary string, padUp int) (int64, error) {
 		if index == -1 {
 			return 0, ErrInvalidCharacter
 		}
-		result += int64(index) * int64(math.Pow(float64(DictLen), float64(i)))
+		result += int64(index) * multiplier
+		multiplier *= int64(DictLen)
 	}
 
 	if padUp > 1 {
-		result -= int64(math.Pow(float64(DictLen), float64(padUp-1)))
+		result -= pow(DictLen, padUp-1)
 	}
 
 	return result, nil
