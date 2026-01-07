@@ -1,0 +1,124 @@
+name: Tests
+
+on:
+  push:
+    branches:
+      - main
+      - 'release/*'
+  pull_request:
+    branches:
+      - main
+      - 'release/*'
+
+jobs:
+  check_changes:
+    name: Check File Changes
+    runs-on: ubuntu-latest
+    outputs:
+      has_go_changes: ${{ steps.changes.outputs.go }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          token: ${{ secrets.CI_GITHUB_TOKEN }}
+
+      - name: Check for changes
+        uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            go:
+              - '**/*.go'
+              - 'go.mod'
+              - 'go.sum'
+
+  unit_tests:
+    name: Unit Tests & Coverage
+    runs-on: ubuntu-latest
+    needs: check_changes
+    if: needs.check_changes.outputs.has_go_changes == 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          token: ${{ secrets.CI_GITHUB_TOKEN }}
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Run Tests with Coverage
+        run: |
+          echo "=== Running Unit Tests ==="
+          go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
+
+      - name: Check Coverage
+        run: |
+          go tool cover -func=coverage.out
+          COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
+          echo "Coverage: ${COVERAGE}%"
+          if (( $(echo "$COVERAGE < 95" | bc -l) )); then
+            echo "::warning::Test coverage: ${COVERAGE}% is below threshold of 95%"
+            exit 1
+          fi
+          echo "::notice::Test coverage: ${COVERAGE}% (threshold: 95%)"
+
+  integration_tests:
+    name: Integration Tests (Go ${{ matrix.go-version }})
+    runs-on: ubuntu-latest
+    needs: check_changes
+    if: needs.check_changes.outputs.has_go_changes == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        go-version: ['1.21', '1.22', '1.23']
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          token: ${{ secrets.CI_GITHUB_TOKEN }}
+
+      - name: Set up Go ${{ matrix.go-version }}
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go-version }}
+
+      - name: Run Integration Tests
+        run: |
+          echo "=== Integration Tests for Go ${{ matrix.go-version }} ==="
+          go version
+          go test -v -race ./...
+
+  status:
+    name: tests_passed
+    runs-on: ubuntu-latest
+    if: always()
+    needs:
+      - unit_tests
+      - integration_tests
+    steps:
+      - name: Check job results
+        run: |
+          unit_result="${{ needs.unit_tests.result }}"
+          integration_result="${{ needs.integration_tests.result }}"
+
+          echo "Unit Tests: $unit_result"
+          echo "Integration Tests: $integration_result"
+
+          # Fail if any job failed
+          if [[ "$unit_result" == "failure" ]] || [[ "$integration_result" == "failure" ]]; then
+            echo "::error::Tests failed"
+            exit 1
+          fi
+
+          # Success if all jobs passed or were skipped
+          if [[ "$unit_result" == "success" || "$unit_result" == "skipped" ]] && \
+             [[ "$integration_result" == "success" || "$integration_result" == "skipped" ]]; then
+            echo "::notice::All tests passed"
+            exit 0
+          fi
+
+          # Catch any unexpected state
+          echo "::error::Unexpected job state"
+          exit 1

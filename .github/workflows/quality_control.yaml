@@ -1,0 +1,115 @@
+name: Quality Control
+
+on:
+  push:
+    branches:
+      - main
+      - 'release/*'
+  pull_request:
+    branches:
+      - main
+      - 'release/*'
+
+jobs:
+  check_changes:
+    name: Check File Changes
+    runs-on: ubuntu-latest
+    outputs:
+      has_go_changes: ${{ steps.changes.outputs.go }}
+      has_markdown_changes: ${{ steps.changes.outputs.markdown }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          token: ${{ secrets.CI_GITHUB_TOKEN }}
+
+      - name: Check for changes
+        uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            go:
+              - '**/*.go'
+              - 'go.mod'
+              - 'go.sum'
+            markdown:
+              - '**/*.md'
+              - '!CLAUDE.md'
+
+  go_quality:
+    name: Go Quality
+    runs-on: ubuntu-latest
+    needs: check_changes
+    if: needs.check_changes.outputs.has_go_changes == 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          token: ${{ secrets.CI_GITHUB_TOKEN }}
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
+
+      - name: Go vet
+        run: go vet ./...
+
+      - name: Go mod tidy check
+        run: |
+          go mod tidy
+          git diff --exit-code go.mod go.sum || (echo "go.mod or go.sum is not tidy" && exit 1)
+
+  markdown_quality:
+    name: Markdown Quality
+    runs-on: ubuntu-latest
+    needs: check_changes
+    if: needs.check_changes.outputs.has_markdown_changes == 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          token: ${{ secrets.CI_GITHUB_TOKEN }}
+
+      - name: Markdown Lint
+        uses: DavidAnson/markdownlint-cli2-action@v18
+        with:
+          globs: '**/*.md'
+
+  status:
+    name: quality_control_passed
+    runs-on: ubuntu-latest
+    if: always()
+    needs:
+      - go_quality
+      - markdown_quality
+    steps:
+      - name: Check job results
+        run: |
+          go_result="${{ needs.go_quality.result }}"
+          markdown_result="${{ needs.markdown_quality.result }}"
+
+          echo "Go Quality: $go_result"
+          echo "Markdown Quality: $markdown_result"
+
+          # Fail if any job failed
+          if [[ "$go_result" == "failure" ]] || [[ "$markdown_result" == "failure" ]]; then
+            echo "::error::Quality control failed"
+            exit 1
+          fi
+
+          # Success if all jobs passed or were skipped
+          if [[ "$go_result" == "success" || "$go_result" == "skipped" ]] && \
+             [[ "$markdown_result" == "success" || "$markdown_result" == "skipped" ]]; then
+            echo "::notice::Quality control passed"
+            exit 0
+          fi
+
+          # Catch any unexpected state
+          echo "::error::Unexpected job state"
+          exit 1
