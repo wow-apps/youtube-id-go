@@ -24,6 +24,7 @@ applyTo: "**/*.go"
 ## Linting Rules (golangci-lint)
 
 Enabled linters:
+
 - `errcheck` - check for unchecked errors
 - `gosimple` - simplify code
 - `govet` - examine Go source code

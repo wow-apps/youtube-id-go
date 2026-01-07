@@ -13,7 +13,7 @@ A clear and concise description of the bug.
 ## Steps to Reproduce
 
 1. Install youtube-id-go: `go get github.com/wow-apps/youtube-id-go`
-2. Run the following code:
+1. Run the following code:
 
 ```go
 package main
@@ -28,7 +28,7 @@ func main() {
 }
 ```
 
-3. See error
+1. See error
 
 ## Expected Behavior
 
@@ -40,7 +40,7 @@ What actually happened.
 
 ## Error Message
 
-```
+```text
 Paste the full error message here
 ```
 
