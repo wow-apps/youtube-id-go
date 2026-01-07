@@ -7,3 +7,21 @@ Thumbs.db
 .idea/
 *.sublime-project
 *.sublime-workspace
+
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+coverage.out
+vendor/
+
+# Go workspace
+go.work
+go.work.sum
+
+# Debug
+__debug_bin*
