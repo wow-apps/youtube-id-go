@@ -3,7 +3,7 @@ package yid_test
 import (
 	"testing"
 
-	"github.com/wow-apps/youtube-id-go"
+	yid "github.com/wow-apps/youtube-id-go"
 )
 
 // TestToAlphanumeric_Basic tests basic number to alphanumeric conversion.
