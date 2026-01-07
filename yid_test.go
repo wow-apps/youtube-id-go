@@ -229,10 +229,13 @@ func TestToNumeric_Boundaries(t *testing.T) {
 
 // TestToNumeric_WithSecureKey tests conversion with secure key.
 func TestToNumeric_WithSecureKey(t *testing.T) {
-	encoded, _ := yid.ToAlphanumeric(12345, yid.WithSecureKey("my-secret"))
+	encoded, err := yid.ToAlphanumeric(12345, yid.WithSecureKey("my-secret"))
+	if err != nil {
+		t.Fatalf("unexpected error during encoding: %v", err)
+	}
 	decoded, err := yid.ToNumeric(encoded, yid.WithSecureKey("my-secret"))
 	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
+		t.Fatalf("unexpected error during decoding: %v", err)
 	}
 	if decoded != 12345 {
 		t.Errorf("expected 12345, got %d", decoded)
@@ -302,8 +305,14 @@ func TestRoundtrip(t *testing.T) {
 func TestRoundtrip_WithSecureKey(t *testing.T) {
 	testNumbers := []int64{0, 1, 100, 12345, 999999}
 	for _, num := range testNumbers {
-		encoded, _ := yid.ToAlphanumeric(num, yid.WithSecureKey("test-key"))
-		decoded, _ := yid.ToNumeric(encoded, yid.WithSecureKey("test-key"))
+		encoded, err := yid.ToAlphanumeric(num, yid.WithSecureKey("test-key"))
+		if err != nil {
+			t.Fatalf("unexpected error encoding %d: %v", num, err)
+		}
+		decoded, err := yid.ToNumeric(encoded, yid.WithSecureKey("test-key"))
+		if err != nil {
+			t.Fatalf("unexpected error decoding %s: %v", encoded, err)
+		}
 		if decoded != num {
 			t.Errorf("roundtrip failed: %d -> %s -> %d", num, encoded, decoded)
 		}
@@ -356,7 +365,7 @@ func TestEncoder_BasicDecode(t *testing.T) {
 	}
 }
 
-// TestEncoder_EncodeRaw tests encode_raw method.
+// TestEncoder_EncodeRaw tests EncodeRaw method.
 func TestEncoder_EncodeRaw(t *testing.T) {
 	enc := yid.New(yid.WithTransform(yid.TransformUpper))
 	raw, err := enc.EncodeRaw(12345)
