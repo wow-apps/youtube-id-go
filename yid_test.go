@@ -633,3 +633,24 @@ func TestEdgeCases_DictionaryCharacters(t *testing.T) {
 		}
 	}
 }
+
+// TestEdgeCases_EmptyStringDecode tests decoding an empty string.
+func TestEdgeCases_EmptyStringDecode(t *testing.T) {
+	result, err := yid.ToNumeric("")
+	if err != nil {
+		t.Fatalf("unexpected error decoding empty string: %v", err)
+	}
+	if result != 0 {
+		t.Errorf("expected 0 for empty string, got %d", result)
+	}
+
+	// Also test with Encoder
+	enc := yid.New()
+	result, err = enc.Decode("")
+	if err != nil {
+		t.Fatalf("unexpected error decoding empty string with Encoder: %v", err)
+	}
+	if result != 0 {
+		t.Errorf("expected 0 for empty string with Encoder, got %d", result)
+	}
+}
