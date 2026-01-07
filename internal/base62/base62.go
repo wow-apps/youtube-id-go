@@ -110,8 +110,8 @@ func SecureDictionary(secureKey string) string {
 		}
 	}
 
-	// Sort by hash char in descending order (reverse=True in Python)
-	sort.SliceStable(pairs, func(i, j int) bool {
+	// Sort by hash char in descending order
+	sort.Slice(pairs, func(i, j int) bool {
 		return pairs[i].hashChar > pairs[j].hashChar
 	})
 
