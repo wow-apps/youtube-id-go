@@ -241,8 +241,14 @@ func TestToNumeric_WithSecureKey(t *testing.T) {
 
 // TestToNumeric_WrongSecureKey tests that wrong secure key produces wrong result.
 func TestToNumeric_WrongSecureKey(t *testing.T) {
-	encoded, _ := yid.ToAlphanumeric(12345, yid.WithSecureKey("correct-key"))
-	decoded, _ := yid.ToNumeric(encoded, yid.WithSecureKey("wrong-key"))
+	encoded, err := yid.ToAlphanumeric(12345, yid.WithSecureKey("correct-key"))
+	if err != nil {
+		t.Fatalf("unexpected error during encoding: %v", err)
+	}
+	decoded, err := yid.ToNumeric(encoded, yid.WithSecureKey("wrong-key"))
+	if err != nil {
+		t.Fatalf("unexpected error during decoding with wrong key: %v", err)
+	}
 	if decoded == 12345 {
 		t.Error("wrong key should produce wrong result")
 	}
@@ -250,10 +256,13 @@ func TestToNumeric_WrongSecureKey(t *testing.T) {
 
 // TestToNumeric_WithPadUp tests conversion with pad_up parameter.
 func TestToNumeric_WithPadUp(t *testing.T) {
-	encoded, _ := yid.ToAlphanumeric(100, yid.WithPadUp(3))
+	encoded, err := yid.ToAlphanumeric(100, yid.WithPadUp(3))
+	if err != nil {
+		t.Fatalf("unexpected error during encoding: %v", err)
+	}
 	decoded, err := yid.ToNumeric(encoded, yid.WithPadUp(3))
 	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
+		t.Fatalf("unexpected error during decoding: %v", err)
 	}
 	if decoded != 100 {
 		t.Errorf("expected 100, got %d", decoded)
