@@ -3,6 +3,8 @@ package yid
 import "github.com/wow-apps/youtube-id-go/internal/base62"
 
 // Encoder provides reusable encoding/decoding with preset options.
+// An Encoder is safe for concurrent use by multiple goroutines since all
+// fields are immutable after creation.
 //
 // Example:
 //

@@ -25,12 +25,17 @@ type config struct {
 // Option configures encoding/decoding behavior.
 type Option func(*config)
 
+// MaxPadUp is the maximum safe padUp value to avoid integer overflow.
+const MaxPadUp = 11
+
 // WithPadUp sets the padding value for minimum output length.
-// Negative values are treated as 0.
+// Negative values are treated as 0. Values exceeding MaxPadUp (11) are clamped.
 func WithPadUp(padUp int) Option {
 	return func(c *config) {
 		if padUp < 0 {
 			padUp = 0
+		} else if padUp > MaxPadUp {
+			padUp = MaxPadUp
 		}
 		c.padUp = padUp
 	}
@@ -86,6 +91,9 @@ func ToAlphanumeric(number int64, opts ...Option) (string, error) {
 }
 
 // ToNumeric converts an alphanumeric string back to a number.
+// The input must be the raw (untransformed) value. If you encoded with
+// WithTransform, you must decode using the original untransformed value.
+// The WithTransform option is ignored by this function.
 //
 // Example:
 //

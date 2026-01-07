@@ -630,6 +630,32 @@ func TestEdgeCases_PadUpNegative(t *testing.T) {
 	}
 }
 
+// TestEdgeCases_PadUpExceedsMax tests that pad_up exceeding MaxPadUp is clamped.
+func TestEdgeCases_PadUpExceedsMax(t *testing.T) {
+	// Encode with MaxPadUp
+	resultMax, err := yid.ToAlphanumeric(12345, yid.WithPadUp(yid.MaxPadUp))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	// Encode with value exceeding MaxPadUp (should be clamped to MaxPadUp)
+	resultOver, err := yid.ToAlphanumeric(12345, yid.WithPadUp(100))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if resultMax != resultOver {
+		t.Errorf("pad_up=%d and pad_up=100 should be same (clamped), got '%s' and '%s'", yid.MaxPadUp, resultMax, resultOver)
+	}
+
+	// Verify roundtrip works with clamped value
+	decoded, err := yid.ToNumeric(resultOver, yid.WithPadUp(100))
+	if err != nil {
+		t.Fatalf("unexpected error decoding: %v", err)
+	}
+	if decoded != 12345 {
+		t.Errorf("expected 12345, got %d", decoded)
+	}
+}
+
 // TestEdgeCases_DictionaryCharacters tests that output only contains valid dictionary characters.
 func TestEdgeCases_DictionaryCharacters(t *testing.T) {
 	validChars := "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"

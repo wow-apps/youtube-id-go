@@ -18,6 +18,10 @@ const DictLen = 62
 // ErrInvalidCharacter is returned when decoding encounters an invalid character.
 var ErrInvalidCharacter = errors.New("base62: invalid character in input")
 
+// MaxPadUp is the maximum safe padUp value to avoid integer overflow.
+// 62^10 fits in int64, but 62^11 exceeds int64 max.
+const MaxPadUp = 11
+
 // pow calculates base^exp using integer arithmetic.
 func pow(base, exp int) int64 {
 	result := int64(1)
@@ -29,8 +33,13 @@ func pow(base, exp int) int64 {
 }
 
 // Encode converts a number to a base62 string using the given dictionary.
+// The padUp parameter should not exceed MaxPadUp (11) to avoid integer overflow.
 func Encode(number int64, dictionary string, padUp int) string {
 	if padUp > 1 {
+		// Clamp padUp to MaxPadUp to prevent overflow
+		if padUp > MaxPadUp {
+			padUp = MaxPadUp
+		}
 		number += pow(DictLen, padUp-1)
 	}
 
@@ -59,6 +68,7 @@ func Encode(number int64, dictionary string, padUp int) string {
 }
 
 // Decode converts a base62 string back to a number.
+// The padUp parameter should not exceed MaxPadUp (11) to avoid integer overflow.
 func Decode(alphanumeric, dictionary string, padUp int) (int64, error) {
 	var result int64
 	length := len(alphanumeric)
@@ -75,6 +85,10 @@ func Decode(alphanumeric, dictionary string, padUp int) (int64, error) {
 	}
 
 	if padUp > 1 {
+		// Clamp padUp to MaxPadUp to prevent overflow
+		if padUp > MaxPadUp {
+			padUp = MaxPadUp
+		}
 		result -= pow(DictLen, padUp-1)
 	}
 
