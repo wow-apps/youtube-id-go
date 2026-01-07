@@ -1,6 +1,7 @@
 package yid_test
 
 import (
+	"strings"
 	"testing"
 
 	yid "github.com/wow-apps/youtube-id-go"
@@ -559,10 +560,7 @@ func TestEdgeCases_UnicodeSecureKey(t *testing.T) {
 
 // TestEdgeCases_LongSecureKey tests with very long secure key.
 func TestEdgeCases_LongSecureKey(t *testing.T) {
-	longKey := ""
-	for i := 0; i < 1000; i++ {
-		longKey += "a"
-	}
+	longKey := strings.Repeat("a", 1000)
 	encoded, err := yid.ToAlphanumeric(12345, yid.WithSecureKey(longKey))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -617,6 +615,21 @@ func TestEdgeCases_PadUpOne(t *testing.T) {
 	}
 }
 
+// TestEdgeCases_PadUpNegative tests that negative pad_up is treated as zero.
+func TestEdgeCases_PadUpNegative(t *testing.T) {
+	result0, err := yid.ToAlphanumeric(12345, yid.WithPadUp(0))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	resultNeg, err := yid.ToAlphanumeric(12345, yid.WithPadUp(-5))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if result0 != resultNeg {
+		t.Errorf("pad_up=0 and pad_up=-5 should be same, got '%s' and '%s'", result0, resultNeg)
+	}
+}
+
 // TestEdgeCases_DictionaryCharacters tests that output only contains valid dictionary characters.
 func TestEdgeCases_DictionaryCharacters(t *testing.T) {
 	validChars := "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -661,5 +674,54 @@ func TestEdgeCases_EmptyStringDecode(t *testing.T) {
 	}
 	if result != 0 {
 		t.Errorf("expected 0 for empty string with Encoder, got %d", result)
+	}
+}
+
+// TestEdgeCases_DecodeTransformedString tests that transformed strings cannot be decoded directly.
+// ToNumeric expects raw (untransformed) values; uppercase/lowercase transformed output will fail.
+func TestEdgeCases_DecodeTransformedString(t *testing.T) {
+	// Encode with uppercase transform
+	encoded, err := yid.ToAlphanumeric(12345, yid.WithTransform(yid.TransformUpper))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if encoded != "DNH" {
+		t.Errorf("expected DNH, got %s", encoded)
+	}
+
+	// Decoding the transformed (uppercase) value should fail or return wrong result
+	// because ToNumeric expects the raw value "dnh", not "DNH"
+	decoded, err := yid.ToNumeric(encoded) // "DNH"
+	if err != nil {
+		// Expected: uppercase letters may cause invalid character error
+		// since they map to different positions in dictionary
+		return
+	}
+	// If no error, the result should be different from original
+	if decoded == 12345 {
+		t.Error("decoded transformed string should not match original number")
+	}
+}
+
+// TestEdgeCases_DecodeRawAfterTransform tests that EncodeRaw output can be decoded correctly.
+func TestEdgeCases_DecodeRawAfterTransform(t *testing.T) {
+	enc := yid.New(yid.WithTransform(yid.TransformUpper))
+
+	// EncodeRaw returns untransformed value suitable for decoding
+	raw, err := enc.EncodeRaw(12345)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if raw != "dnh" {
+		t.Errorf("expected dnh, got %s", raw)
+	}
+
+	// Raw value can be decoded correctly
+	decoded, err := enc.Decode(raw)
+	if err != nil {
+		t.Fatalf("unexpected error decoding raw: %v", err)
+	}
+	if decoded != 12345 {
+		t.Errorf("expected 12345, got %d", decoded)
 	}
 }

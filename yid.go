@@ -26,8 +26,12 @@ type config struct {
 type Option func(*config)
 
 // WithPadUp sets the padding value for minimum output length.
+// Negative values are treated as 0.
 func WithPadUp(padUp int) Option {
 	return func(c *config) {
+		if padUp < 0 {
+			padUp = 0
+		}
 		c.padUp = padUp
 	}
 }
