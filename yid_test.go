@@ -87,8 +87,14 @@ func TestToAlphanumeric_WithSecureKey(t *testing.T) {
 
 // TestToAlphanumeric_DifferentSecureKeys tests that different keys produce different outputs.
 func TestToAlphanumeric_DifferentSecureKeys(t *testing.T) {
-	result1, _ := yid.ToAlphanumeric(12345, yid.WithSecureKey("key1"))
-	result2, _ := yid.ToAlphanumeric(12345, yid.WithSecureKey("key2"))
+	result1, err := yid.ToAlphanumeric(12345, yid.WithSecureKey("key1"))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	result2, err := yid.ToAlphanumeric(12345, yid.WithSecureKey("key2"))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 	if result1 == result2 {
 		t.Error("different keys should produce different outputs")
 	}
@@ -129,8 +135,14 @@ func TestToAlphanumeric_TransformNone(t *testing.T) {
 
 // TestToAlphanumeric_WithPadUp tests conversion with pad_up parameter.
 func TestToAlphanumeric_WithPadUp(t *testing.T) {
-	resultNoPad, _ := yid.ToAlphanumeric(1)
-	resultWithPad, _ := yid.ToAlphanumeric(1, yid.WithPadUp(3))
+	resultNoPad, err := yid.ToAlphanumeric(1)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	resultWithPad, err := yid.ToAlphanumeric(1, yid.WithPadUp(3))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 	if resultNoPad == resultWithPad {
 		t.Error("pad_up should change output")
 	}
@@ -424,8 +436,14 @@ func TestEncoder_Roundtrip(t *testing.T) {
 func TestEncoder_MultipleEncodersIndependence(t *testing.T) {
 	enc1 := yid.New(yid.WithSecureKey("key1"))
 	enc2 := yid.New(yid.WithSecureKey("key2"))
-	result1, _ := enc1.Encode(12345)
-	result2, _ := enc2.Encode(12345)
+	result1, err := enc1.Encode(12345)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	result2, err := enc2.Encode(12345)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 	if result1 == result2 {
 		t.Error("different encoders with different keys should produce different outputs")
 	}
@@ -478,8 +496,14 @@ func TestEdgeCases_VeryLargeNumber(t *testing.T) {
 
 // TestEdgeCases_EmptySecureKey tests that empty string secure key works like no key.
 func TestEdgeCases_EmptySecureKey(t *testing.T) {
-	resultNoKey, _ := yid.ToAlphanumeric(12345)
-	resultEmptyKey, _ := yid.ToAlphanumeric(12345, yid.WithSecureKey(""))
+	resultNoKey, err := yid.ToAlphanumeric(12345)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	resultEmptyKey, err := yid.ToAlphanumeric(12345, yid.WithSecureKey(""))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 	if resultNoKey != resultEmptyKey {
 		t.Error("empty secure key should be same as no key")
 	}
@@ -487,8 +511,14 @@ func TestEdgeCases_EmptySecureKey(t *testing.T) {
 
 // TestEdgeCases_SpecialCharactersInSecureKey tests secure key with special characters.
 func TestEdgeCases_SpecialCharactersInSecureKey(t *testing.T) {
-	encoded, _ := yid.ToAlphanumeric(12345, yid.WithSecureKey("!@#$%^&*()"))
-	decoded, _ := yid.ToNumeric(encoded, yid.WithSecureKey("!@#$%^&*()"))
+	encoded, err := yid.ToAlphanumeric(12345, yid.WithSecureKey("!@#$%^&*()"))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	decoded, err := yid.ToNumeric(encoded, yid.WithSecureKey("!@#$%^&*()"))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 	if decoded != 12345 {
 		t.Errorf("expected 12345, got %d", decoded)
 	}
@@ -496,8 +526,14 @@ func TestEdgeCases_SpecialCharactersInSecureKey(t *testing.T) {
 
 // TestEdgeCases_UnicodeSecureKey tests secure key with unicode characters.
 func TestEdgeCases_UnicodeSecureKey(t *testing.T) {
-	encoded, _ := yid.ToAlphanumeric(12345, yid.WithSecureKey("ключ"))
-	decoded, _ := yid.ToNumeric(encoded, yid.WithSecureKey("ключ"))
+	encoded, err := yid.ToAlphanumeric(12345, yid.WithSecureKey("ключ"))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	decoded, err := yid.ToNumeric(encoded, yid.WithSecureKey("ключ"))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 	if decoded != 12345 {
 		t.Errorf("expected 12345, got %d", decoded)
 	}
@@ -509,8 +545,14 @@ func TestEdgeCases_LongSecureKey(t *testing.T) {
 	for i := 0; i < 1000; i++ {
 		longKey += "a"
 	}
-	encoded, _ := yid.ToAlphanumeric(12345, yid.WithSecureKey(longKey))
-	decoded, _ := yid.ToNumeric(encoded, yid.WithSecureKey(longKey))
+	encoded, err := yid.ToAlphanumeric(12345, yid.WithSecureKey(longKey))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	decoded, err := yid.ToNumeric(encoded, yid.WithSecureKey(longKey))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 	if decoded != 12345 {
 		t.Errorf("expected 12345, got %d", decoded)
 	}
@@ -520,7 +562,10 @@ func TestEdgeCases_LongSecureKey(t *testing.T) {
 func TestEdgeCases_ConsecutiveNumbers(t *testing.T) {
 	seen := make(map[string]bool)
 	for i := int64(0); i < 100; i++ {
-		result, _ := yid.ToAlphanumeric(i)
+		result, err := yid.ToAlphanumeric(i)
+		if err != nil {
+			t.Fatalf("unexpected error for %d: %v", i, err)
+		}
 		if seen[result] {
 			t.Errorf("duplicate output for %d: %s", i, result)
 		}
@@ -530,7 +575,10 @@ func TestEdgeCases_ConsecutiveNumbers(t *testing.T) {
 
 // TestEdgeCases_PadUpZero tests pad_up with zero value.
 func TestEdgeCases_PadUpZero(t *testing.T) {
-	result, _ := yid.ToAlphanumeric(12345, yid.WithPadUp(0))
+	result, err := yid.ToAlphanumeric(12345, yid.WithPadUp(0))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 	if result != "dnh" {
 		t.Errorf("expected 'dnh', got '%s'", result)
 	}
@@ -538,8 +586,14 @@ func TestEdgeCases_PadUpZero(t *testing.T) {
 
 // TestEdgeCases_PadUpOne tests pad_up with one (should be same as zero).
 func TestEdgeCases_PadUpOne(t *testing.T) {
-	result0, _ := yid.ToAlphanumeric(12345, yid.WithPadUp(0))
-	result1, _ := yid.ToAlphanumeric(12345, yid.WithPadUp(1))
+	result0, err := yid.ToAlphanumeric(12345, yid.WithPadUp(0))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	result1, err := yid.ToAlphanumeric(12345, yid.WithPadUp(1))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 	if result0 != result1 {
 		t.Errorf("pad_up=0 and pad_up=1 should be same, got '%s' and '%s'", result0, result1)
 	}
@@ -559,7 +613,10 @@ func TestEdgeCases_DictionaryCharacters(t *testing.T) {
 
 	testNumbers := []int64{0, 1, 62, 100, 12345, 999999}
 	for _, num := range testNumbers {
-		result, _ := yid.ToAlphanumeric(num)
+		result, err := yid.ToAlphanumeric(num)
+		if err != nil {
+			t.Fatalf("unexpected error for %d: %v", num, err)
+		}
 		for _, c := range result {
 			if !isValid(c) {
 				t.Errorf("invalid character '%c' in output for %d", c, num)
