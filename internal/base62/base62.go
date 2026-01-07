@@ -3,7 +3,6 @@ package base62
 
 import (
 	"crypto/sha256"
-	"crypto/sha512"
 	"encoding/hex"
 	"errors"
 	"sort"
@@ -90,16 +89,10 @@ type charPair struct {
 
 // SecureDictionary shuffles the dictionary based on a secure key.
 // This makes it harder to calculate the corresponding numeric ID without knowing the key.
+// Uses SHA256 which produces 64 hex characters, sufficient for the 62-character dictionary.
 func SecureDictionary(secureKey string) string {
 	hash := sha256.Sum256([]byte(secureKey))
 	hashHex := hex.EncodeToString(hash[:])
-
-	// Use SHA512 if SHA256 hex is too short (SHA256 hex is 64 chars, so this won't happen,
-	// but we match Python logic for consistency)
-	if len(hashHex) < DictLen {
-		hash512 := sha512.Sum512([]byte(secureKey))
-		hashHex = hex.EncodeToString(hash512[:])
-	}
 
 	// Create pairs of hash char and dictionary char
 	pairs := make([]charPair, DictLen)
