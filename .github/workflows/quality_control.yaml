@@ -19,7 +19,7 @@ jobs:
       has_markdown_changes: ${{ steps.changes.outputs.markdown }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           token: ${{ secrets.CI_GITHUB_TOKEN }}
 
@@ -43,7 +43,7 @@ jobs:
     if: needs.check_changes.outputs.has_go_changes == 'true'
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           token: ${{ secrets.CI_GITHUB_TOKEN }}
 
@@ -75,12 +75,12 @@ jobs:
     if: needs.check_changes.outputs.has_markdown_changes == 'true'
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           token: ${{ secrets.CI_GITHUB_TOKEN }}
 
       - name: Markdown Lint
-        uses: DavidAnson/markdownlint-cli2-action@v22
+        uses: DavidAnson/markdownlint-cli2-action@v23
         with:
           globs: '**/*.md'
 
